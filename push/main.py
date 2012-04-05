@@ -1,0 +1,48 @@
+import sys
+import os.path
+
+import push.config
+import push.hosts
+import push.args
+import push.log
+import push.deploy
+import push.syslog
+import push.irc
+import push.cli
+
+
+def main():
+    # read in the various configs and arguments and get ready
+    try:
+        config = push.config.parse_config()
+        all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
+        args = push.args.parse_args(all_hosts, aliases)
+        log = push.log.Log(config, args)
+    except (push.config.ConfigurationError, push.hosts.HostOrAliasError,
+            push.args.ArgumentError), e:
+        print >> sys.stderr, "%s: %s" % (os.path.basename(sys.argv[0]), e)
+        return 1
+    else:
+        deployer = push.deploy.Deployer(config, args, log)
+
+    # set up listeners
+    push.log.register(config, args, deployer, log)
+    push.syslog.register(config, args, deployer, log)
+    push.irc.register(config, args, deployer, log)
+    push.cli.register(config, args, deployer, log)
+
+    # go
+    try:
+        deployer.push()
+    except push.deploy.PushAborted:
+        pass
+    except Exception, e:
+        log.critical("Push failed: %s", e)
+        return 1
+    finally:
+        log.close()
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
