@@ -9,6 +9,7 @@ setup(
     install_requires=[
         "wessex",
         "paramiko",
+        "dnspython",
     ],
     entry_points={
         "console_scripts": [
