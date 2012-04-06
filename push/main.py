@@ -18,8 +18,8 @@ def main():
         all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
         args = push.args.parse_args(all_hosts, aliases)
         log = push.log.Log(config, args)
-    except (push.config.ConfigurationError, push.hosts.HostOrAliasError,
-            push.args.ArgumentError), e:
+    except (push.config.ConfigurationError, push.args.ArgumentError,
+            push.hosts.HostOrAliasError, push.hosts.HostLookupError), e:
         print >> sys.stderr, "%s: %s" % (os.path.basename(sys.argv[0]), e)
         return 1
     else:

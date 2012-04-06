@@ -3,6 +3,7 @@ import fnmatch
 import dns.name
 import dns.zone
 import dns.query
+import dns.exception
 import dns.resolver
 
 
@@ -26,17 +27,28 @@ def sorted_nicely(iter):
     return sorted(iter, key=alphanum_key)
 
 
+class HostLookupError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
 def _get_hosts_from_dns(config):
     """Does a DNS zone transfer off the SOA for a given domain to get a list of
     hosts that can be pushed to."""
 
-    soa_answer = dns.resolver.query(config.dns.domain, "SOA", tcp=True)
-    master_answer = dns.resolver.query(soa_answer[0].mname, "A", tcp=True)
-    xfr_answer = dns.query.xfr(master_answer[0].address, config.dns.domain)
-    zone = dns.zone.from_xfr(xfr_answer)
-    return sorted_nicely([name.to_text()
-                          for name in zone.nodes.keys()
-                          if name != dns.name.empty and not name.is_wild()])
+    try:
+        soa_answer = dns.resolver.query(config.dns.domain, "SOA", tcp=True)
+        master_answer = dns.resolver.query(soa_answer[0].mname, "A", tcp=True)
+        xfr_answer = dns.query.xfr(master_answer[0].address, config.dns.domain)
+        zone = dns.zone.from_xfr(xfr_answer)
+        return sorted_nicely([name.to_text()
+                             for name in zone.nodes.keys()
+                             if name != dns.name.empty and not name.is_wild()])
+    except dns.exception.DNSException, e:
+        raise HostLookupError("host lookup by dns failed: %r" % e)
 
 
 class HostOrAliasError(Exception):
