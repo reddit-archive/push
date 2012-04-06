@@ -223,7 +223,7 @@ def parse_args(all_hosts, aliases, namespace=None):
         args.auto_continue = True
 
     if args.start_at and args.start_at not in args.hosts:
-        raise ArgumentError('--startat: host "%s" not in host list.' % 
+        raise ArgumentError('--startat: host "%s" not in host list.' %
                             args.start_at)
 
     return args
