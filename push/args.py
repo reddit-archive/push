@@ -1,5 +1,8 @@
+import sys
 import argparse
 import collections
+
+import push.hosts
 
 
 __all__ = ["parse_args", "ArgumentError"]
@@ -43,35 +46,6 @@ class DictAddConstKey(MutatingAction):
         d = self.get_attr_to_mutate(namespace)
         value = values[0]
         d[self.const] = value
-
-
-class AppendHostOrAlias(MutatingAction):
-    """Action that appends hosts to a host list, and extends the host list with
-    the contents of aliases."""
-    def __init__(self, *args, **kwargs):
-        self.all_hosts = kwargs.pop("all_hosts")
-        self.aliases = kwargs.pop("aliases")
-        MutatingAction.__init__(self, *args, type_to_mutate=list, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        host_list = self.get_attr_to_mutate(namespace)
-        queue = collections.deque(values)
-        while queue:
-            host_or_alias = queue.popleft()
-
-            # backwards compatibility with perl version
-            if " " in host_or_alias:
-                queue.extend(x.strip() for x in host_or_alias.split(" "))
-                continue
-
-            if host_or_alias in self.all_hosts:
-                host_list.append(host_or_alias)
-            elif host_or_alias in self.aliases:
-                host_list.extend(self.aliases[host_or_alias])
-            else:
-                raise argparse.ArgumentError(self,
-                                             'unknown host or alias "%s"' %
-                                             host_or_alias)
 
 
 class DeployCommand(MutatingAction):
@@ -131,15 +105,14 @@ class ArgumentParser(argparse.ArgumentParser):
         raise ArgumentError(message)
 
 
-def parse_args(all_hosts, aliases, namespace=None):
+def _parse_args():
     parser = ArgumentParser(description="Deploy stuff to servers.",
                             epilog="To deploy all code: push -h apps "
                                    "-pc -dc -r all",
                             add_help=False)
 
-    parser.add_argument("-h", dest="hosts", metavar="HOST", required=True,
-                        action=AppendHostOrAlias, nargs="+",
-                        all_hosts=all_hosts, aliases=aliases,
+    parser.add_argument("-h", dest="host_refs", metavar="HOST", required=True,
+                        action="append", nargs="+",
                         help="hosts or groups to execute commands on")
     parser.add_argument("--sleeptime", dest="sleeptime", nargs="?",
                         type=int, default=5,
@@ -164,8 +137,7 @@ def parse_args(all_hosts, aliases, namespace=None):
 
     startat_shuffle = parser.add_mutually_exclusive_group()
     startat_shuffle.add_argument("--startat", dest="start_at",
-                                 action=StoreIfHost, nargs='?',
-                                 all_hosts=all_hosts,
+                                 action="store", nargs='?',
                                  help="skip to this position in the host list")
     startat_shuffle.add_argument("--shuffle", dest="shuffle",
                                  action="store_true", help="shuffle host list")
@@ -217,11 +189,45 @@ def parse_args(all_hosts, aliases, namespace=None):
                         action=KillCommand, choices=["all", "apps"],
                         help="whom to kill on the host")
 
-    args = parser.parse_args(namespace=namespace)
+    if len(sys.argv) == 1:
+        parser.print_help()
 
+    return parser.parse_args()
+
+
+def parse_args(config):
+    args = _parse_args()
+
+    # quiet implies autocontinue
     if args.quiet:
         args.auto_continue = True
 
+    # dereference the host lists
+    all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
+    args.hosts = []
+    queue = collections.deque(args.host_refs)
+    while queue:
+        host_or_alias = queue.popleft()
+
+        # individual instances of -h append a list to the list. flatten
+        if hasattr(host_or_alias, "__iter__"):
+            queue.extend(host_or_alias)
+            continue
+
+        # backwards compatibility with perl version
+        if " " in host_or_alias:
+            queue.extend(x.strip() for x in host_or_alias.split())
+            continue
+
+        if host_or_alias in all_hosts:
+            args.hosts.append(host_or_alias)
+        elif host_or_alias in aliases:
+            args.hosts.extend(aliases[host_or_alias])
+        else:
+            raise ArgumentError('-h: unknown host or alias "%s"' %
+                                host_or_alias)
+
+    # make sure the startat is in the dereferenced host list
     if args.start_at and args.start_at not in args.hosts:
         raise ArgumentError('--startat: host "%s" not in host list.' %
                             args.start_at)

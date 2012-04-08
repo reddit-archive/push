@@ -2,7 +2,6 @@ import sys
 import os.path
 
 import push.config
-import push.hosts
 import push.args
 import push.log
 import push.deploy
@@ -15,8 +14,7 @@ def main():
     # read in the various configs and arguments and get ready
     try:
         config = push.config.parse_config()
-        all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
-        args = push.args.parse_args(all_hosts, aliases)
+        args = push.args.parse_args(config)
         log = push.log.Log(config, args)
     except (push.config.ConfigurationError, push.args.ArgumentError,
             push.hosts.HostOrAliasError, push.hosts.HostLookupError), e:
