@@ -138,7 +138,7 @@ def parse_config():
     """Loads the configuration files and parses them according to the
     section parsers in SECTIONS."""
     parser = ConfigParser.RawConfigParser()
-    parser.read(["/etc/push.ini", os.path.expanduser("~/.push.ini")])
+    parser.read(["/etc/push/push.ini", os.path.expanduser("~/.push.ini")])
 
     config = attrdict()
     for name, section_parser in SECTIONS.iteritems():
