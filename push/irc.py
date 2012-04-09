@@ -7,10 +7,7 @@ def register(config, args, deployer, log):
     if not args.notify_irc:
         return
 
-    harold = wessex.Harold(host=config.harold.host,
-                           secret=config.harold.secret,
-                           port=config.harold.port,
-                           timeout=config.harold.timeout)
+    harold = wessex.connect_harold()
     monitor = harold.get_deploy(log.push_id)
 
     def log_exception_and_continue(fn):

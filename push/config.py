@@ -100,15 +100,6 @@ class PathsConfig(object):
 
 
 @config_section
-class HaroldConfig(object):
-    host = Option(str)
-    port = Option(int)
-    secret = Option(str)
-    channel = Option(str)
-    timeout = Option(int, default=2)
-
-
-@config_section
 class SyslogConfig(object):
     def syslog_enum(value):
         import syslog

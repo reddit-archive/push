@@ -7,7 +7,7 @@ setup(
     version="",
     packages=["push"],
     install_requires=[
-        "wessex>=1.1",
+        "wessex>=1.2",
         "paramiko",
         "dnspython",
     ],
