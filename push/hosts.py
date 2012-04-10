@@ -5,6 +5,7 @@ import dns.zone
 import dns.query
 import dns.exception
 import dns.resolver
+import dns.rdtypes
 
 
 MAX_NESTED_ALIASES = 10
@@ -45,8 +46,8 @@ def _get_hosts_from_dns(config):
         xfr_answer = dns.query.xfr(master_answer[0].address, config.dns.domain)
         zone = dns.zone.from_xfr(xfr_answer)
         return sorted_nicely([name.to_text()
-                             for name in zone.nodes.keys()
-                             if name != dns.name.empty and not name.is_wild()])
+                              for name, ttl, rdata in
+                              zone.iterate_rdatas("A")])
     except dns.exception.DNSException, e:
         raise HostLookupError("host lookup by dns failed: %r" % e)
 
