@@ -1,0 +1,35 @@
+[ssh]
+user = super-deploy-user
+key_filename = /some/path/something.key
+strict_host_key_checking = true
+timeout = 10
+
+[deploy]
+build_host = localhost
+build_binary = /your/mother
+deploy_binary = /smells/of/elderberries
+
+[paths]
+log_root = /var/log/push/
+
+[harold]
+host = harold.example.com
+port = 8888
+secret = abc
+channel = #theinternet
+
+[syslog]
+ident = deploy
+facility = LOCAL4
+priority = NOTICE
+
+[dns]
+domain = example.com
+
+[s3]
+aws_access_key_id = NOT_SECRET
+aws_secret_access_key = REALLY_SECRET
+
+[aliases]
+apps = app-*
+something = @apps
