@@ -1,7 +1,7 @@
 import os
 import sys
-import uuid
 import base64
+import random
 import getpass
 import datetime
 
@@ -16,6 +16,7 @@ BLUE = 34
 MAGENTA = 35
 CYAN = 36
 WHITE = 37
+WORDLIST = "/usr/share/dict/words"
 
 
 def colorize(text, color, bold):
@@ -28,13 +29,27 @@ def colorize(text, color, bold):
         return text
 
 
+def get_random_word():
+    # rather than reading the whole file into memory to make a choice we
+    # will just seek to a random place, throw out the rest of the line
+    # then return the next complete line we get. to lazily dodge the edge
+    # cases near the beginning/end of the file, we just assume no word is
+    # longer than 100 characters and reduce the rand range accordingly
+    file_size = os.path.getsize(WORDLIST)
+    position = random.randint(100, file_size - 100)
+
+    with open(WORDLIST, "r") as wordlist:
+        wordlist.seek(position)
+        wordlist.readline()
+        return wordlist.readline().strip()
+
+
 class Log(object):
     def __init__(self, config, args):
         self.args = args
 
         # generate a unique id for the push
-        id_bytes = uuid.uuid1().bytes
-        self.push_id = base64.urlsafe_b64encode(id_bytes).rstrip('=')
+        self.push_id = get_random_word()
 
         # build the path for the logfile
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")
