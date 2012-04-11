@@ -132,6 +132,7 @@ class Deployer(object):
             if build_static:
                 self.deploy_to_build_host()
                 self.build_static()
+                self.args.deploy_commands.append(["fetch-names"])
 
         for host in self.args.hosts:
             # skip hosts until we get the one to start at
