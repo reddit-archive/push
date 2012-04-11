@@ -45,7 +45,7 @@ def event_wrapped(fn):
             result = fn(self, *args, **kwargs)
         except Exception, e:
             getattr(self, aborted_name).fire(e)
-            raise e
+            raise
         else:
             getattr(self, ended_name).fire(*args, **kwargs)
             return result
