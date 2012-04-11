@@ -37,43 +37,49 @@ class SetAddConst(MutatingAction):
             s.add(self.const)
 
 
-class DictAddConstKey(MutatingAction):
+class SetAddValues(MutatingAction):
+    "Action that adds values to a set."
+    def __init__(self, *args, **kwargs):
+        MutatingAction.__init__(self, *args, type_to_mutate=set, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        s = self.get_attr_to_mutate(namespace)
+
+        for x in values:
+            s.add(x)
+
+
+class DictAdd(MutatingAction):
     "Action that adds an argument to a dict with a constant key."
     def __init__(self, *args, **kwargs):
         MutatingAction.__init__(self, *args, type_to_mutate=dict, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         d = self.get_attr_to_mutate(namespace)
-        value = values[0]
-        d[self.const] = value
+        key, value = values
+        d[key] = value
 
 
-class DeployCommand(MutatingAction):
-    """Intercepts -r's arguments and ensures the restart commands are properly
-    prefixed."""
+class RestartCommand(MutatingAction):
+    """Makes a deploy command out of -r (graceful restart) options."""
 
     def __init__(self, *args, **kwargs):
         MutatingAction.__init__(self, *args, type_to_mutate=list, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        value = values[0]
-        prefix = ""
-        if value in ("all", "apps"):
-            prefix = "restart-"
-
         command_list = self.get_attr_to_mutate(namespace)
-        command_list.append(prefix + value)
+        command_list.append(["restart", values[0]])
 
 
 class KillCommand(MutatingAction):
-    """Prefixes -k's arguments with "kill-" for the deploy script's sake"""
+    """Makes a deploy command out of -k (kill) options."""
 
     def __init__(self, *args, **kwargs):
         MutatingAction.__init__(self, *args, type_to_mutate=list, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         command_list = self.get_attr_to_mutate(namespace)
-        command_list.append("kill-" + values[0])
+        command_list.append(["kill", values[0]])
 
 
 class StoreIfHost(argparse.Action):
@@ -145,46 +151,39 @@ def _parse_args():
     parser.add_argument("--help", action="help", help="display this help")
 
     deploy_group = parser.add_argument_group("deploy")
+    deploy_group.add_argument("-p", dest="fetches",
+                              action=SetAddValues, nargs="+",
+                              metavar="REPO",
+                              help="git-fetch the specified repo(s)")
     deploy_group.add_argument("-pc", dest="fetches", default=set(),
                               action=SetAddConst, const=["public", "private"],
-                              help="short for -ppu -ppr")
-    deploy_group.add_argument("-ppu", dest="fetches",
-                              action=SetAddConst, const="public",
-                              help="git-fetch the public repo")
-    deploy_group.add_argument("-ppr", dest="fetches",
-                              action=SetAddConst, const="private",
-                              help="git-fetch the private repo")
-    deploy_group.add_argument("-pla", dest="fetches",
-                              action=SetAddConst, const="i18n",
-                              help="git-fetch the i18n repo")
+                              help="short for -p public private")
+    deploy_group.add_argument("-ppr", dest="fetches", default=set(),
+                              action=SetAddConst, const=["private"],
+                              help="short for -p private")
+
+    deploy_group.add_argument("-d", dest="deploys",
+                              action=SetAddValues, nargs="+",
+                              metavar="REPO",
+                              help="deploy the specified repo(s)")
     deploy_group.add_argument("-dc", dest="deploys", default=set(),
                               action=SetAddConst, const=["public", "private"],
-                              help="short for -dpu -dpr")
-    deploy_group.add_argument("-dpu", dest="deploys",
-                              action=SetAddConst, const="public",
-                              help="deploy the public repo")
-    deploy_group.add_argument("-dpr", dest="deploys",
-                              action=SetAddConst, const="private",
-                              help="deploy the private repo")
-    deploy_group.add_argument("-dla", dest="deploys",
-                              action=SetAddConst, const="i18n",
-                              help="deploy the i18n repo")
-    deploy_group.add_argument("-publicrev", dest="revisions", default={},
-                              metavar="REF", action=DictAddConstKey,
-                              const="public", nargs=1,
-                              help="revision to deploy to public repo")
-    deploy_group.add_argument("-privaterev", dest="revisions", default={},
-                              metavar="REF", action=DictAddConstKey,
-                              const="private", nargs=1,
-                              help="revision to deploy to private repo")
-    deploy_group.add_argument("-langrev", dest="revisions", default={},
-                              metavar="REF", action=DictAddConstKey,
-                              const="i18n", nargs=1,
-                              help="revision to deploy to i18n repo")
+                              help="short for -d public private")
+    deploy_group.add_argument("-dpr", dest="deploys", default=set(),
+                              action=SetAddConst, const=["private"],
+                              help="short for -d private")
+    deploy_group.add_argument("-rev", dest="revisions", default={},
+                              metavar=("REPO", "REF"), action=DictAdd,
+                              nargs=2,
+                              help="revision to deploy for specified repo")
 
+    parser.add_argument("-c", dest="deploy_commands", nargs="+",
+                        metavar=("COMMAND", "ARG"), action="append",
+                        help="deploy command to run on the host",
+                        default=[])
     parser.add_argument("-r", dest="deploy_commands", nargs=1,
-                        metavar="COMMAND", action=DeployCommand,
-                        help="deploy command to execute")
+                        metavar="COMMAND", action=RestartCommand,
+                        help="whom to (gracefully) restart on the host")
     parser.add_argument("-k", dest="deploy_commands", nargs=1,
                         action=KillCommand, choices=["all", "apps"],
                         help="whom to kill on the host")

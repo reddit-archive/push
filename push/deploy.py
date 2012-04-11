@@ -65,11 +65,11 @@ class Deployer(object):
 
     def _run_fetch_on_host(self, host):
         for repo in self.args.fetches:
-            self.deployer.run_deploy_command(host, "fetch-%s" % repo)
+            self.deployer.run_deploy_command(host, "fetch", repo)
 
     def _deploy_to_host(self, host):
         for repo in self.args.deploys:
-            self.deployer.run_deploy_command(host, "deploy-%s-revision" % repo,
+            self.deployer.run_deploy_command(host, "deploy", repo,
                                              self.args.revisions[repo])
 
     @event_wrapped
@@ -99,7 +99,7 @@ class Deployer(object):
         self._deploy_to_host(host)
 
         for command in self.args.deploy_commands:
-            self.deployer.run_deploy_command(host, command)
+            self.deployer.run_deploy_command(host, *command)
 
     @event_wrapped
     def push(self):
