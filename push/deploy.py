@@ -101,6 +101,15 @@ class Deployer(object):
         for command in self.args.deploy_commands:
             self.deployer.run_deploy_command(host, *command)
 
+    def is_plugin(self, repo):
+        try:
+            self.deployer.run_build_command("is-plugin", repo,
+                                            display_output=False)
+        except push.ssh.SshError:
+            return False
+        else:
+            return True
+
     @event_wrapped
     def push(self):
         if self.args.shuffle:
@@ -113,9 +122,16 @@ class Deployer(object):
         if self.args.deploys:
             self.resolve_refs()
 
-        if self.args.build_static and "public" in self.args.deploys:
-            self.deploy_to_build_host()
-            self.build_static()
+        if self.args.build_static:
+            build_static = False
+            for repo in self.args.deploys:
+                if repo == "public" or self.is_plugin(repo):
+                    build_static = True
+                    break
+
+            if build_static:
+                self.deploy_to_build_host()
+                self.build_static()
 
         for host in self.args.hosts:
             # skip hosts until we get the one to start at
