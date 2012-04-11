@@ -143,7 +143,7 @@ def _parse_args():
 
     startat_shuffle = parser.add_mutually_exclusive_group()
     startat_shuffle.add_argument("--startat", dest="start_at",
-                                 action="store", nargs='?',
+                                 action="store", nargs='?', metavar="HOST",
                                  help="skip to this position in the host list")
     startat_shuffle.add_argument("--shuffle", dest="shuffle",
                                  action="store_true", help="shuffle host list")
