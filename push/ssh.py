@@ -75,7 +75,7 @@ class SshDeployer(object):
         return self.current_connection
 
     def _run_command(self, host, binary, *args, **kwargs):
-        command = " ".join((binary,) + args)
+        command = " ".join(("/usr/bin/sudo", binary) + args)
         self.log.debug(command)
 
         if not self.args.testing:
