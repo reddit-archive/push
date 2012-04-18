@@ -129,6 +129,7 @@ class Deployer(object):
 
         if self.args.deploys:
             self.resolve_refs()
+            self.deploy_to_build_host()
 
         if self.args.build_static:
             build_static = False
@@ -138,7 +139,6 @@ class Deployer(object):
                     break
 
             if build_static:
-                self.deploy_to_build_host()
                 self.build_static()
                 self.args.deploy_commands.append(["fetch-names"])
 
