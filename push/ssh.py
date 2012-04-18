@@ -3,6 +3,12 @@ import getpass
 import paramiko
 
 
+# hack to add paramiko support for AES encrypted private keys
+if "AES-128-CBC" not in paramiko.PKey._CIPHER_TABLE:
+    from Crypto.Cipher import AES
+    paramiko.PKey._CIPHER_TABLE["AES-128-CBC"] = dict(cipher=AES, keysize=16, blocksize=16, mode=AES.MODE_CBC)
+
+
 class SshError(Exception):
     def __init__(self, code):
         self.code = code
