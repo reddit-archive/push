@@ -1,4 +1,5 @@
 import select
+import getpass
 import paramiko
 
 
@@ -19,8 +20,10 @@ class SshConnection(object):
         self.client = paramiko.SSHClient()
         if not config.ssh.strict_host_key_checking:
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.client.connect(host, username=config.ssh.user,
-                            timeout=config.ssh.timeout)
+        self.client.connect(host,
+                            username=config.ssh.user,
+                            timeout=config.ssh.timeout,
+                            pkey=config.ssh.pkey)
 
     def execute_command(self, command, display_output=False):
         transport = self.client.get_transport()
@@ -66,6 +69,43 @@ class SshDeployer(object):
         self.args = args
         self.log = log
         self.current_connection = None
+
+        config.ssh.pkey = None
+        if not config.ssh.key_filename:
+            return
+
+        key_classes = (paramiko.RSAKey, paramiko.DSSKey)
+        for key_class in key_classes:
+            try:
+                config.ssh.pkey = key_class.from_private_key_file(
+                                                config.ssh.key_filename)
+            except paramiko.PasswordRequiredException:
+                need_password = True
+                break
+            except paramiko.SSHException:
+                continue
+            else:
+                need_password = False
+                break
+        else:
+            raise SshError("invalid key file %s" % config.ssh.key_filename)
+
+        tries_remaining = 3
+        while need_password and tries_remaining:
+            password = getpass.getpass("password for %s: " %
+                                       config.ssh.key_filename)
+
+            try:
+                config.ssh.pkey = key_class.from_private_key_file(
+                                                config.ssh.key_filename,
+                                                password=password)
+                need_password = False
+            except paramiko.SSHException:
+                tries_remaining -= 1
+
+        if need_password and not tries_remaining:
+            raise SshError("invalid password.")
+
 
     def _get_connection(self, host):
         if self.current_connection and self.current_connection.host != host:

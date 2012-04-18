@@ -82,7 +82,6 @@ def config_section(cls):
 class SshConfig(object):
     user = Option(str)
     key_filename = Option(str, default=None)
-    forward_agent = Option(boolean, default=False)
     strict_host_key_checking = Option(boolean, default=True)
     timeout = Option(int, default=30)
 
