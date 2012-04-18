@@ -63,9 +63,10 @@ class Deployer(object):
         for event_name in auto_events:
             setattr(self, event_name, Event(self))
 
-    def _run_fetch_on_host(self, host):
+    def _run_fetch_on_host(self, host, origin="origin", ref_filter="all-refs"):
         for repo in self.args.fetches:
-            self.deployer.run_deploy_command(host, "fetch", repo)
+            self.deployer.run_deploy_command(host, "fetch", repo,
+                                             origin, ref_filter)
 
     def _deploy_to_host(self, host):
         for repo in self.args.deploys:
@@ -74,7 +75,8 @@ class Deployer(object):
 
     @event_wrapped
     def synchronize(self):
-        self._run_fetch_on_host(self.config.deploy.build_host)
+        self._run_fetch_on_host(self.config.deploy.build_host,
+                                ref_filter="local-refs")
 
     @event_wrapped
     def resolve_refs(self):
