@@ -112,6 +112,12 @@ class Deployer(object):
 
     @event_wrapped
     def push(self):
+        try:
+            self._push()
+        finally:
+            self.deployer.shutdown()
+
+    def _push(self):
         if self.args.shuffle:
             import random
             random.shuffle(self.args.hosts)

@@ -112,6 +112,10 @@ class SshDeployer(object):
         if need_password and not tries_remaining:
             raise SshError("invalid password.")
 
+    def shutdown(self):
+        if self.current_connection:
+            self.current_connection.close()
+            self.current_connection = None
 
     def _get_connection(self, host):
         if self.current_connection and self.current_connection.host != host:
