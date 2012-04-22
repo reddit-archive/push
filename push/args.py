@@ -151,25 +151,25 @@ def _parse_args():
     parser.add_argument("--help", action="help", help="display this help")
 
     deploy_group = parser.add_argument_group("deploy")
-    deploy_group.add_argument("-p", dest="fetches",
+    deploy_group.add_argument("-p", dest="fetches", default=set(),
                               action=SetAddValues, nargs="+",
                               metavar="REPO",
                               help="git-fetch the specified repo(s)")
-    deploy_group.add_argument("-pc", dest="fetches", default=set(),
+    deploy_group.add_argument("-pc", dest="fetches",
                               action=SetAddConst, const=["public", "private"],
                               help="short for -p public private")
-    deploy_group.add_argument("-ppr", dest="fetches", default=set(),
+    deploy_group.add_argument("-ppr", dest="fetches",
                               action=SetAddConst, const=["private"],
                               help="short for -p private")
 
-    deploy_group.add_argument("-d", dest="deploys",
+    deploy_group.add_argument("-d", dest="deploys", default=set(),
                               action=SetAddValues, nargs="+",
                               metavar="REPO",
                               help="deploy the specified repo(s)")
-    deploy_group.add_argument("-dc", dest="deploys", default=set(),
+    deploy_group.add_argument("-dc", dest="deploys",
                               action=SetAddConst, const=["public", "private"],
                               help="short for -d public private")
-    deploy_group.add_argument("-dpr", dest="deploys", default=set(),
+    deploy_group.add_argument("-dpr", dest="deploys",
                               action=SetAddConst, const=["private"],
                               help="short for -d private")
     deploy_group.add_argument("-rev", dest="revisions", default={},
