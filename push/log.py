@@ -1,6 +1,5 @@
 import os
 import sys
-import base64
 import random
 import getpass
 import datetime
