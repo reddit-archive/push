@@ -121,10 +121,6 @@ class Deployer(object):
             self.deployer.shutdown()
 
     def _push(self):
-        if self.args.shuffle:
-            import random
-            random.shuffle(self.args.hosts)
-
         if self.args.fetches:
             self.synchronize()
 

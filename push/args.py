@@ -231,4 +231,9 @@ def parse_args(config):
         raise ArgumentError('--startat: host "%s" not in host list.' %
                             args.start_at)
 
+    # do the shuffle!
+    if args.shuffle:
+        import random
+        random.shuffle(args.hosts)
+
     return args
