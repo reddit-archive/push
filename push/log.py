@@ -30,18 +30,17 @@ def colorize(text, color, bold):
 
 
 def get_random_word():
-    # rather than reading the whole file into memory to make a choice we
-    # will just seek to a random place, throw out the rest of the line
-    # then return the next complete line we get. to lazily dodge the edge
-    # cases near the beginning/end of the file, we just assume no word is
-    # longer than 100 characters and reduce the rand range accordingly
     file_size = os.path.getsize(WORDLIST)
-    position = random.randint(100, file_size - 100)
+    word = ""
 
     with open(WORDLIST, "r") as wordlist:
-        wordlist.seek(position)
-        wordlist.readline()
-        return wordlist.readline().strip()
+        while not word.isalpha() or not word.islower() or len(word) < 5:
+            position = random.randint(1, file_size)
+            wordlist.seek(position)
+            wordlist.readline()
+            word = wordlist.readline().rstrip("\n")
+
+    return word
 
 
 class Log(object):
