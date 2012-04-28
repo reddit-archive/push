@@ -14,6 +14,7 @@ setup(
     entry_points={
         "console_scripts": [
             "push = push.main:main",
+            "deploy-report = push.reports:revisions",
         ]
     }
 )

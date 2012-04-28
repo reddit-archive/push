@@ -194,17 +194,11 @@ def _parse_args():
     return parser.parse_args()
 
 
-def parse_args(config):
-    args = _parse_args()
-
-    # quiet implies autocontinue
-    if args.quiet:
-        args.auto_continue = True
-
-    # dereference the host lists
+def expand_host_refs(config, host_refs):
+    hosts = []
     all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
-    args.hosts = []
-    queue = collections.deque(args.host_refs)
+
+    queue = collections.deque(host_refs)
     while queue:
         host_or_alias = queue.popleft()
 
@@ -219,12 +213,24 @@ def parse_args(config):
             continue
 
         if host_or_alias in all_hosts:
-            args.hosts.append(host_or_alias)
+            hosts.append(host_or_alias)
         elif host_or_alias in aliases:
-            args.hosts.extend(aliases[host_or_alias])
+            hosts.extend(aliases[host_or_alias])
         else:
             raise ArgumentError('-h: unknown host or alias "%s"' %
                                 host_or_alias)
+    return hosts
+
+
+def parse_args(config):
+    args = _parse_args()
+
+    # quiet implies autocontinue
+    if args.quiet:
+        args.auto_continue = True
+
+    # dereference the host lists
+    args.hosts = expand_host_refs(args.host_refs)
 
     # make sure the startat is in the dereferenced host list
     if args.start_at and args.start_at not in args.hosts:
