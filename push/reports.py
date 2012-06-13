@@ -88,6 +88,8 @@ def revisions():
         print host.ljust(14) + "  ",
 
         for repo in known_repos:
+            if host not in report:
+                continue
             rev = report[host][repo]
             output = rev[:8].rjust(14)
             if rev != current_revisions[repo]:
