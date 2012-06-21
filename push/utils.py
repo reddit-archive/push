@@ -11,7 +11,7 @@ def get_random_word(config):
             position = random.randint(1, file_size)
             wordlist.seek(position)
             wordlist.readline()
-            word = wordlist.readline().rstrip("\n")
+            word = unicode(wordlist.readline().rstrip("\n"), 'utf-8')
 
     return word
 

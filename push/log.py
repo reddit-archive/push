@@ -1,5 +1,6 @@
 import os
 import sys
+import codecs
 import getpass
 import datetime
 
@@ -39,7 +40,7 @@ class Log(object):
         self.log_path = os.path.join(config.paths.log_root, log_name)
 
         # open the logfile
-        self.logfile = open(self.log_path, "w")
+        self.logfile = codecs.open(self.log_path, "w", "utf-8")
 
     def write(self, text, color=None, bold=False, newline=False, stdout=True):
         suffix = "\n" if newline else ""

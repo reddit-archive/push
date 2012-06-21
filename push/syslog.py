@@ -2,11 +2,11 @@ from __future__ import absolute_import
 
 import syslog
 import getpass
-import functools
 
 
 def register(config, args, deployer, log):
-    write_syslog = functools.partial(syslog.syslog, config.syslog.priority)
+    def write_syslog(message):
+        syslog.syslog(config.syslog.priority, message.encode('utf-8'))
 
     syslog.openlog(ident=config.syslog.ident, facility=config.syslog.facility)
 
