@@ -132,14 +132,12 @@ def _parse_args(config):
     parser.add_argument("--seed", dest="seed", action="store",
                         nargs="?", metavar="WORD", default=None,
                         help="name of push to copy the shuffle-order of")
-
-    if config.defaults.shuffle:
-        parser.add_argument("--no-shuffle", dest="shuffle",
-                            action="store_false", default=True,
-                            help="don't shuffle host list")
-    else:
-        parser.add_argument("--shuffle", dest="shuffle", default=False,
-                            action="store_true", help="shuffle host list")
+    parser.add_argument("--shuffle", dest="shuffle",
+                        default=config.defaults.shuffle,
+                        action="store_true", help="shuffle host list")
+    parser.add_argument("--no-shuffle", dest="shuffle",
+                        action="store_false",
+                        help="don't shuffle host list")
 
     flags_group = parser.add_argument_group("flags")
     flags_group.add_argument("-t", dest="testing", action="store_true",
