@@ -3,8 +3,6 @@ import sys
 import getpass
 import datetime
 
-import push.utils
-
 
 __all__ = ["Log", "register"]
 
@@ -33,7 +31,7 @@ class Log(object):
         self.args = args
 
         # generate a unique id for the push
-        self.push_id = push.utils.get_random_word(config)
+        self.push_id = args.push_id
 
         # build the path for the logfile
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")

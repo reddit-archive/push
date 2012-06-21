@@ -14,13 +14,13 @@ def register(config, args, deployer, log):
     def on_push_began(deployer):
         user = getpass.getuser()
         write_syslog('Push %s started by '
-                     '%s with args "%s"' % (log.push_id, user,
+                     '%s with args "%s"' % (args.push_id, user,
                                             args.command_line))
 
     @deployer.push_ended
     def on_push_ended(deployer):
-        write_syslog("Push %s complete!" % log.push_id)
+        write_syslog("Push %s complete!" % args.push_id)
 
     @deployer.push_aborted
     def on_push_aborted(deployer, exception):
-        write_syslog("Push %s aborted (%s)" % (log.push_id, exception))
+        write_syslog("Push %s aborted (%s)" % (args.push_id, exception))

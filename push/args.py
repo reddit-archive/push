@@ -4,6 +4,7 @@ import itertools
 import collections
 
 import push.hosts
+import push.utils
 
 
 __all__ = ["parse_args", "ArgumentError"]
@@ -128,6 +129,9 @@ def _parse_args(config):
     parser.add_argument("--startat", dest="start_at",
                         action="store", nargs='?', metavar="HOST",
                         help="skip to this position in the host list")
+    parser.add_argument("--seed", dest="seed", action="store",
+                        nargs="?", metavar="WORD", default=None,
+                        help="name of push to copy the shuffle-order of")
 
     if config.defaults.shuffle:
         parser.add_argument("--no-shuffle", dest="shuffle",
@@ -247,6 +251,9 @@ def build_command_line(config, args):
     if args.shuffle:
         components.append("--shuffle")
 
+    if args.seed:
+        components.append("--seed=%s" % args.seed)
+
     components.append("--sleeptime=%d" % args.sleeptime)
 
     return " ".join(components)
@@ -254,6 +261,9 @@ def build_command_line(config, args):
 
 def parse_args(config):
     args = _parse_args(config)
+
+    # give the push a unique name
+    args.push_id = push.utils.get_random_word(config)
 
     # quiet implies autocontinue
     if args.quiet:
@@ -289,15 +299,15 @@ def parse_args(config):
         raise ArgumentError('--startat: host "%s" not in host list.' %
                             args.start_at)
 
-    # it really doesn't make sense to start-at while shufflin'
-    if args.start_at and args.shuffle:
+    # it really doesn't make sense to start-at while shufflin' w/o a seed
+    if args.start_at and args.shuffle and not args.seed:
         raise ArgumentError("--startat: doesn't make sense "
-                            "while shuffling")
+                            "while shuffling without a seed")
 
     # do the shuffle!
     if args.shuffle:
-        import random
-        random.shuffle(args.hosts)
+        seed = args.seed or args.push_id
+        push.utils.seeded_shuffle(seed, args.hosts)
 
     # build a psuedo-commandline out of args and defaults
     args.command_line = build_command_line(config, args)

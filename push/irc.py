@@ -7,7 +7,7 @@ def register(config, args, deployer, log):
         return
 
     harold = wessex.connect_harold()
-    monitor = harold.get_deploy(log.push_id)
+    monitor = harold.get_deploy(args.push_id)
 
     def log_exception_and_continue(fn):
         def wrapper(*args, **kwargs):

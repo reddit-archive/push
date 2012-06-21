@@ -14,3 +14,17 @@ def get_random_word(config):
             word = wordlist.readline().rstrip("\n")
 
     return word
+
+
+def _seed_from_word(word):
+    return sum(ord(c) for c in word)
+
+
+def seeded_shuffle(seedword, list):
+    state = random.getstate()
+
+    seed = _seed_from_word(seedword)
+    random.seed(seed)
+    random.shuffle(list)
+
+    random.setstate(state)
