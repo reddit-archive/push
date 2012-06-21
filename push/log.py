@@ -1,8 +1,9 @@
 import os
 import sys
-import random
 import getpass
 import datetime
+
+import push.utils
 
 
 __all__ = ["Log", "register"]
@@ -15,7 +16,6 @@ BLUE = 34
 MAGENTA = 35
 CYAN = 36
 WHITE = 37
-WORDLIST = "/usr/share/dict/words"
 
 
 def colorize(text, color, bold):
@@ -28,26 +28,12 @@ def colorize(text, color, bold):
         return text
 
 
-def get_random_word():
-    file_size = os.path.getsize(WORDLIST)
-    word = ""
-
-    with open(WORDLIST, "r") as wordlist:
-        while not word.isalpha() or not word.islower() or len(word) < 5:
-            position = random.randint(1, file_size)
-            wordlist.seek(position)
-            wordlist.readline()
-            word = wordlist.readline().rstrip("\n")
-
-    return word
-
-
 class Log(object):
     def __init__(self, config, args):
         self.args = args
 
         # generate a unique id for the push
-        self.push_id = get_random_word()
+        self.push_id = push.utils.get_random_word(config)
 
         # build the path for the logfile
         timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S")

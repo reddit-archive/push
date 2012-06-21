@@ -96,6 +96,7 @@ class DeployConfig(object):
 @config_section
 class PathsConfig(object):
     log_root = Option(str)
+    wordlist = Option(str, default="/usr/share/dict/words")
 
 
 @config_section
