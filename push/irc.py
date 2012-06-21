@@ -1,4 +1,3 @@
-import sys
 import wessex
 import getpass
 
@@ -21,7 +20,7 @@ def register(config, args, deployer, log):
     @deployer.push_began
     @log_exception_and_continue
     def on_push_began(deployer):
-        monitor.begin(getpass.getuser(), " ".join(sys.argv[1:]),
+        monitor.begin(getpass.getuser(), args.command_line,
                       log.log_path, len(args.hosts))
 
     @deployer.process_host_ended

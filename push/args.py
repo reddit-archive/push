@@ -1,5 +1,6 @@
 import sys
 import argparse
+import itertools
 import collections
 
 import push.hosts
@@ -111,7 +112,7 @@ class ArgumentParser(argparse.ArgumentParser):
         raise ArgumentError(message)
 
 
-def _parse_args():
+def _parse_args(config):
     parser = ArgumentParser(description="Deploy stuff to servers.",
                             epilog="To deploy all code: push -h apps "
                                    "-pc -dc -r all --shuffle",
@@ -121,9 +122,20 @@ def _parse_args():
                         action="append", nargs="+",
                         help="hosts or groups to execute commands on")
     parser.add_argument("--sleeptime", dest="sleeptime", nargs="?",
-                        type=int, default=5,
+                        type=int, default=config.defaults.sleeptime,
                         metavar="SECONDS",
                         help="time in seconds to sleep between hosts")
+    parser.add_argument("--startat", dest="start_at",
+                        action="store", nargs='?', metavar="HOST",
+                        help="skip to this position in the host list")
+
+    if config.defaults.shuffle:
+        parser.add_argument("--no-shuffle", dest="shuffle",
+                            action="store_false", default=True,
+                            help="don't shuffle host list")
+    else:
+        parser.add_argument("--shuffle", dest="shuffle", default=False,
+                            action="store_true", help="shuffle host list")
 
     flags_group = parser.add_argument_group("flags")
     flags_group.add_argument("-t", dest="testing", action="store_true",
@@ -140,13 +152,6 @@ def _parse_args():
     flags_group.add_argument("--no-input", dest="auto_continue",
                              action="store_true",
                              help="don't wait for input after deploy")
-
-    startat_shuffle = parser.add_mutually_exclusive_group()
-    startat_shuffle.add_argument("--startat", dest="start_at",
-                                 action="store", nargs='?', metavar="HOST",
-                                 help="skip to this position in the host list")
-    startat_shuffle.add_argument("--shuffle", dest="shuffle",
-                                 action="store_true", help="shuffle host list")
 
     parser.add_argument("--help", action="help", help="display this help")
 
@@ -194,8 +199,61 @@ def _parse_args():
     return parser.parse_args()
 
 
+def build_command_line(config, args):
+    "Given a configured environment, build a canonical command line for it."
+    components = []
+
+    components.append("-h")
+    components.extend(itertools.chain.from_iterable(args.host_refs))
+
+    if args.start_at:
+        components.append("--startat=%s" % args.start_at)
+
+    if args.fetches:
+        components.append("-p")
+        components.extend(args.fetches)
+
+    if args.deploys:
+        components.append("-d")
+        components.extend(args.deploys)
+
+    commands = dict(restart="-r",
+                    kill="-k")
+    for command in args.deploy_commands:
+        if len(command) == 2:
+            components.append(commands[command[0]])
+            components.append(command[1])
+        else:
+            components.extend(("-c", command[0]))
+
+    for repo, rev in args.revisions:
+        components.extend(("-rev", repo, rev))
+
+    if not args.build_static:
+        components.append("--no-static")
+
+    if args.auto_continue:
+        components.append("--no-input")
+
+    if not args.notify_irc:
+        components.append("--no-irc")
+
+    if args.quiet:
+        components.append("--quiet")
+
+    if args.testing:
+        components.append("-t")
+
+    if args.shuffle:
+        components.append("--shuffle")
+
+    components.append("--sleeptime=%d" % args.sleeptime)
+
+    return " ".join(components)
+
+
 def parse_args(config):
-    args = _parse_args()
+    args = _parse_args(config)
 
     # quiet implies autocontinue
     if args.quiet:
@@ -231,9 +289,17 @@ def parse_args(config):
         raise ArgumentError('--startat: host "%s" not in host list.' %
                             args.start_at)
 
+    # it really doesn't make sense to start-at while shufflin'
+    if args.start_at and args.shuffle:
+        raise ArgumentError("--startat: doesn't make sense "
+                            "while shuffling")
+
     # do the shuffle!
     if args.shuffle:
         import random
         random.shuffle(args.hosts)
+
+    # build a psuedo-commandline out of args and defaults
+    args.command_line = build_command_line(config, args)
 
     return args

@@ -60,7 +60,7 @@ def config_section(cls):
 
             try:
                 value = parser.get(section_name, name)
-            except ConfigParser.NoOptionError:
+            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
                 if option_def.default is NoDefault:
                     raise ConfigurationError(section_name, name,
                                              "required but not present")
@@ -113,6 +113,11 @@ class SyslogConfig(object):
 @config_section
 class DnsConfig(object):
     domain = Option(str)
+
+@config_section
+class DefaultsConfig(object):
+    sleeptime = Option(int, default=5)
+    shuffle = Option(boolean, default=False)
 
 
 def alias_parser(section_name, parser):

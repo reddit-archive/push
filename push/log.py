@@ -107,7 +107,6 @@ def register(config, args, deployer, log):
     def on_push_began(deployer):
         user = getpass.getuser()
         time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M")
-        args = " ".join(sys.argv[1:])
         log.write("Push started by %s at %s "
-                  "UTC with args: %s" % (user, time, args),
+                  "UTC with args: %s" % (user, time, args.command_line),
                   newline=True, stdout=False)

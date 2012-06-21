@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import sys
 import syslog
 import getpass
 import functools
@@ -14,9 +13,9 @@ def register(config, args, deployer, log):
     @deployer.push_began
     def on_push_began(deployer):
         user = getpass.getuser()
-        args = " ".join(sys.argv[1:])
         write_syslog('Push %s started by '
-                     '%s with args "%s"' % (log.push_id, user, args))
+                     '%s with args "%s"' % (log.push_id, user,
+                                            args.command_line))
 
     @deployer.push_ended
     def on_push_ended(deployer):
