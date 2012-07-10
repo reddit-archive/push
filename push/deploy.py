@@ -147,6 +147,11 @@ class Deployer(object):
                 else:
                     continue
 
+            # skip one host
+            if self.args.skip_one:
+                self.args.skip_one = False
+                continue
+
             self.process_host(host)
 
     def cancel_push(self, reason):

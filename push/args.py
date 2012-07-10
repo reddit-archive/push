@@ -138,6 +138,9 @@ def _parse_args(config):
     parser.add_argument("--no-shuffle", dest="shuffle",
                         action="store_false",
                         help="don't shuffle host list")
+    parser.add_argument("--skip", dest="skip_one",
+                        action="store_true", default=False,
+                        help="skip the first host in the list (obeying startat first)")
 
     flags_group = parser.add_argument_group("flags")
     flags_group.add_argument("-t", dest="testing", action="store_true",
