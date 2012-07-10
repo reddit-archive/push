@@ -50,6 +50,8 @@ class SshConnection(object):
             if not received:
                 break
 
+            received = unicode(received, "utf-8")
+
             output.append(received)
 
             if display_output:
