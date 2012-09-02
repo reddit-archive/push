@@ -104,9 +104,9 @@ class Deployer(object):
         for command in self.args.deploy_commands:
             self.deployer.run_deploy_command(host, *command)
 
-    def is_plugin(self, repo):
+    def needs_static_build(self, repo):
         try:
-            self.deployer.run_build_command("is-plugin", repo,
+            self.deployer.run_build_command("needs-static-build", repo,
                                             display_output=False)
         except push.ssh.SshError:
             return False
@@ -131,7 +131,7 @@ class Deployer(object):
         if self.args.build_static:
             build_static = False
             for repo in self.args.deploys:
-                if repo == "public" or self.is_plugin(repo):
+                if repo == "public" or self.needs_static_build(repo):
                     build_static = True
                     break
 
