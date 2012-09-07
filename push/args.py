@@ -225,11 +225,14 @@ def build_command_line(config, args):
     commands = dict(restart="-r",
                     kill="-k")
     for command in args.deploy_commands:
-        if len(command) == 2:
-            components.append(commands[command[0]])
-            components.append(command[1])
+        special_command = commands.get(command[0])
+        if special_command:
+            components.append(special_command)
+            command = command[1:]
         else:
-            components.extend(("-c", command[0]))
+            components.append("-c")
+
+        components.extend(command)
 
     for repo, rev in args.revisions:
         components.extend(("-rev", repo, rev))
