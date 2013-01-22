@@ -258,6 +258,9 @@ def build_command_line(config, args):
     if args.seed:
         components.append("--seed=%s" % args.seed)
 
+    if args.skip_one:
+        components.append("--skip")
+
     components.append("--sleeptime=%d" % args.sleeptime)
 
     return " ".join(components)
