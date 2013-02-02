@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 etc/push.ini
+push.egg-info
