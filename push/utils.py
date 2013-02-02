@@ -1,3 +1,4 @@
+import hashlib
 import os
 import random
 
@@ -16,15 +17,5 @@ def get_random_word(config):
     return word
 
 
-def _seed_from_word(word):
-    return sum(ord(c) for c in word)
-
-
 def seeded_shuffle(seedword, list):
-    state = random.getstate()
-
-    seed = _seed_from_word(seedword)
-    random.seed(seed)
-    random.shuffle(list)
-
-    random.setstate(state)
+    list.sort(key=lambda h: hashlib.md5(seedword + h).hexdigest())
