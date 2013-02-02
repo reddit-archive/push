@@ -141,6 +141,9 @@ def _parse_args(config):
     parser.add_argument("--skip", dest="skip_one",
                         action="store_true", default=False,
                         help="skip the first host in the list (obeying startat first)")
+    parser.add_argument("--list", dest="list_hosts",
+                        action="store_true", default=False,
+                        help="print the host list to stdout and exit")
 
     flags_group = parser.add_argument_group("flags")
     flags_group.add_argument("-t", dest="testing", action="store_true",

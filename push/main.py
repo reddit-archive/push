@@ -15,6 +15,12 @@ def main():
     try:
         config = push.config.parse_config()
         args = push.args.parse_args(config)
+
+        if args.list_hosts:
+            for host in args.hosts:
+                print host
+            return 0
+
         log = push.log.Log(config, args)
     except (push.config.ConfigurationError, push.args.ArgumentError,
             push.hosts.HostOrAliasError, push.hosts.HostLookupError), e:
