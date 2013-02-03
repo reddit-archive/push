@@ -9,8 +9,12 @@ setup(
     install_requires=[
         "wessex>=1.3.1",
         "paramiko",
-        "dnspython",
     ],
+    extras_require={
+        "DNS": [
+            "dnspython",
+        ],
+    },
     entry_points={
         "console_scripts": [
             "push = push.main:main",

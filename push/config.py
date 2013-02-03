@@ -1,11 +1,12 @@
 from __future__ import absolute_import
 
 import os
+import collections
 import ConfigParser
 
 
 NoDefault = object()
-SECTIONS = {}
+SECTIONS = collections.OrderedDict()
 
 
 class attrdict(dict):
@@ -47,12 +48,12 @@ class Option(object):
         self.validator = validator
 
 
-def config_section(cls):
-    """Decorator to apply to a declarative class describing a config section.
-    Options within the section are parsed and stored in a dict."""
+def _make_extractor(cls, prefix="", required=True):
     section_name = cls.__name__[:-len("config")].lower()
+    if prefix:
+        section_name = prefix + ":" + section_name
 
-    def config_extractor(section_name, parser):
+    def config_extractor(parser):
         section = attrdict()
         for name, option_def in vars(cls).iteritems():
             if not isinstance(option_def, Option):
@@ -74,8 +75,19 @@ def config_section(cls):
             section[name] = value
         return section
 
+    config_extractor.required = required
+    config_extractor.prefix = prefix
     SECTIONS[section_name] = config_extractor
-    return config_extractor
+
+
+def config_section(*args, **kwargs):
+    if len(args) == 1 and not kwargs:
+        # bare decorator "@config_section" style
+        return _make_extractor(args[0])
+
+    def config_decorator(cls):
+        return _make_extractor(cls, **kwargs)
+    return config_decorator
 
 
 @config_section
@@ -112,8 +124,26 @@ class SyslogConfig(object):
 
 
 @config_section
+class HostsConfig(object):
+    def valid_host_source(value):
+        try:
+            section = SECTIONS["hosts:" + value]
+        except KeyError:
+            raise ValueError("invalid host source: %r" % value)
+        section.required = True
+        return value
+    source = Option(valid_host_source)
+
+
+@config_section(prefix="hosts", required=False)
 class DnsConfig(object):
     domain = Option(str)
+
+
+@config_section(prefix="hosts", required=False)
+class MockConfig(object):
+    host_count = Option(int)
+
 
 @config_section
 class DefaultsConfig(object):
@@ -121,7 +151,7 @@ class DefaultsConfig(object):
     shuffle = Option(boolean, default=False)
 
 
-def alias_parser(section_name, parser):
+def alias_parser(parser):
     aliases = {}
     if parser.has_section("aliases"):
         for key, value in parser.items("aliases"):
@@ -138,5 +168,14 @@ def parse_config():
 
     config = attrdict()
     for name, section_parser in SECTIONS.iteritems():
-        config[name] = section_parser(name, parser)
+        is_required = getattr(section_parser, "required", True)
+        if is_required or parser.has_section(name):
+            prefix = getattr(section_parser, "prefix", None)
+            parsed = section_parser(parser)
+            if not prefix:
+                config[name] = parsed
+            else:
+                unprefixed = name[len(prefix) + 1:]
+                config.setdefault(prefix, attrdict())[unprefixed] = parsed
+
     return config

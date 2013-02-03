@@ -17,8 +17,11 @@ ident = deploy
 facility = LOCAL4
 priority = NOTICE
 
-[dns]
-domain = example.com
+[hosts]
+source = mock
+
+[hosts:mock]
+host_count = 30
 
 [aliases]
 apps = app-*

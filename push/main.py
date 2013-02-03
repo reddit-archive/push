@@ -14,7 +14,8 @@ def main():
     # read in the various configs and arguments and get ready
     try:
         config = push.config.parse_config()
-        args = push.args.parse_args(config)
+        host_source = push.hosts.make_host_source(config)
+        args = push.args.parse_args(config, host_source)
 
         if args.list_hosts:
             for host in args.hosts:

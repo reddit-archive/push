@@ -19,11 +19,23 @@ Some basic defaults for CLI options that can be overridden in user-configs.
 * `sleeptime` -- duration to wait between hosts.
 * `shuffle` -- whether or not to shuffle the hostlist before deploy.
 
-## dns
+## hosts
+
+Configuration of where to source a list of host names and host up/down status.
+
+* `source` -- one of `dns` or `mock`.
+
+### hostsource:dns
 
 A DNS zone transfer is used to grab a list of all hosts that can be pushed to.
 
 * `domain` -- the domain to do a zone transfer from.
+
+### hostsource:mock
+
+Mostly useful for testing. Generates a fake list of host names.
+
+* `host_count` -- number of hosts to generate
 
 ## aliases
 

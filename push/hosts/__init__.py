@@ -1,17 +1,12 @@
-import re
 import fnmatch
-import dns.name
-import dns.zone
-import dns.query
-import dns.exception
-import dns.resolver
-import dns.rdtypes
+import importlib
+import re
 
 
 MAX_NESTED_ALIASES = 10
 
 
-def sorted_nicely(iter):
+def _sorted_nicely(iter):
     """Sorts strings with embedded numbers in them the way humans would expect.
 
     http://nedbatchelder.com/blog/200712/human_sorting.html#comments"""
@@ -36,22 +31,6 @@ class HostLookupError(Exception):
         return self.message
 
 
-def _get_hosts_from_dns(config):
-    """Does a DNS zone transfer off the SOA for a given domain to get a list of
-    hosts that can be pushed to."""
-
-    try:
-        soa_answer = dns.resolver.query(config.dns.domain, "SOA", tcp=True)
-        master_answer = dns.resolver.query(soa_answer[0].mname, "A", tcp=True)
-        xfr_answer = dns.query.xfr(master_answer[0].address, config.dns.domain)
-        zone = dns.zone.from_xfr(xfr_answer)
-        return sorted_nicely([name.to_text()
-                              for name, ttl, rdata in
-                              zone.iterate_rdatas("A")])
-    except dns.exception.DNSException, e:
-        raise HostLookupError("host lookup by dns failed: %r" % e)
-
-
 class HostOrAliasError(Exception):
     def __init__(self, alias, fmt, *args):
         self.alias = alias
@@ -62,11 +41,23 @@ class HostOrAliasError(Exception):
         return ('alias "%s":' % self.alias) + " " + (self.fmt % self.args)
 
 
-def get_hosts_and_aliases(config):
+class HostSource(object):
+    def get_all_hosts(self):
+        raise NotImplementedError
+
+
+def make_host_source(config):
+    source_name = config.hosts.source
+    source_module = importlib.import_module("push.hosts." + source_name)
+    source_cls = getattr(source_module, source_name.title() + "HostSource")
+    return source_cls(config)
+
+
+def get_hosts_and_aliases(config, host_source):
     """Fetches hosts from DNS then aliases them by globs specified in
     the config file. Returns a tuple of (all_hosts:list, aliases:dict)."""
 
-    all_hosts = _get_hosts_from_dns(config)
+    all_hosts = _sorted_nicely(host_source.get_all_hosts())
     aliases = {}
 
     def dereference_alias(alias_name, globs, depth=0):

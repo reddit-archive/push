@@ -269,7 +269,7 @@ def build_command_line(config, args):
     return " ".join(components)
 
 
-def parse_args(config):
+def parse_args(config, host_source):
     args = _parse_args(config)
 
     # give the push a unique name
@@ -280,7 +280,7 @@ def parse_args(config):
         args.auto_continue = True
 
     # dereference the host lists
-    all_hosts, aliases = push.hosts.get_hosts_and_aliases(config)
+    all_hosts, aliases = push.hosts.get_hosts_and_aliases(config, host_source)
     args.hosts = []
     queue = collections.deque(args.host_refs)
     while queue:
