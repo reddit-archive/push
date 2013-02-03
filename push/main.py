@@ -28,7 +28,7 @@ def main():
         print >> sys.stderr, "%s: %s" % (os.path.basename(sys.argv[0]), e)
         return 1
     else:
-        deployer = push.deploy.Deployer(config, args, log)
+        deployer = push.deploy.Deployer(config, args, log, host_source)
 
     # set up listeners
     push.log.register(config, args, deployer, log)

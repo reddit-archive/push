@@ -54,10 +54,11 @@ def event_wrapped(fn):
 
 
 class Deployer(object):
-    def __init__(self, config, args, log):
+    def __init__(self, config, args, log, host_source):
         self.config = config
         self.args = args
         self.log = log
+        self.host_source = host_source
         self.deployer = push.ssh.SshDeployer(config, args, log)
 
         for event_name in auto_events:
@@ -152,7 +153,15 @@ class Deployer(object):
                 self.args.skip_one = False
                 continue
 
-            self.process_host(host)
+            try:
+                self.process_host(host)
+            except push.ssh.SshError:
+                if self.host_source.should_host_be_alive(host):
+                    raise
+                else:
+                    self.log.warning("Host %r appears to have been terminated."
+                                     " ignoring errors and continuing." % host)
+
 
     def cancel_push(self, reason):
         raise PushAborted(reason)

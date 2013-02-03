@@ -45,6 +45,9 @@ class HostSource(object):
     def get_all_hosts(self):
         raise NotImplementedError
 
+    def should_host_be_alive(self, host):
+        return True
+
 
 def make_host_source(config):
     source_name = config.hosts.source
