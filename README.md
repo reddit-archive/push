@@ -25,13 +25,23 @@ Configuration of where to source a list of host names and host up/down status.
 
 * `source` -- one of `dns` or `mock`.
 
-### hostsource:dns
+### hosts:dns
 
 A DNS zone transfer is used to grab a list of all hosts that can be pushed to.
 
 * `domain` -- the domain to do a zone transfer from.
 
-### hostsource:mock
+### hosts:zookeeper
+
+Pretty reddit-specific, but hostnames can be pulled from ZooKeeper. This additionally
+allows you to determine if the push commands failing on one host was because it was
+auto-scaled away.
+
+* `connection_string` -- the zookeeper connection string
+* `username` -- username to authenticate with (digest auth)
+* `password` -- password to authenticate with
+
+### hosts:mock
 
 Mostly useful for testing. Generates a fake list of host names.
 
