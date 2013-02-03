@@ -145,6 +145,13 @@ class MockConfig(object):
     host_count = Option(int)
 
 
+@config_section(prefix="hosts", required=False)
+class ZooKeeperConfig(object):
+    connection_string = Option(str)
+    username = Option(str)
+    password = Option(str)
+
+
 @config_section
 class DefaultsConfig(object):
     sleeptime = Option(int, default=5)

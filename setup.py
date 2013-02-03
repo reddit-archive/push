@@ -14,6 +14,9 @@ setup(
         "DNS": [
             "dnspython",
         ],
+        "ZooKeeper": [
+            "kazoo",
+        ],
     },
     entry_points={
         "console_scripts": [
