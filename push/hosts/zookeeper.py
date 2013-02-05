@@ -23,6 +23,8 @@ class ZookeeperHostSource(HostSource):
     def should_host_be_alive(self, host_name):
         try:
             host_root = "/server/" + host_name
+            if not self.retry(self.zk.exists, host_root):
+                return False
             is_autoscaled = self.retry(self.zk.exists, host_root + "/asg")
             is_running = self.retry(self.zk.exists, host_root + "/running")
             return not is_autoscaled or is_running
