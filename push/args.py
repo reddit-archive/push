@@ -237,7 +237,7 @@ def build_command_line(config, args):
 
         components.extend(command)
 
-    for repo, rev in args.revisions:
+    for repo, rev in args.revisions.iteritems():
         components.extend(("-rev", repo, rev))
 
     if not args.build_static:
