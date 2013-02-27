@@ -27,28 +27,32 @@ class SetAddConst(MutatingAction):
     "Action that adds a constant to a set."
     def __init__(self, *args, **kwargs):
         kwargs["nargs"] = 0
-        MutatingAction.__init__(self, *args, type_to_mutate=set, **kwargs)
+        MutatingAction.__init__(self, *args,
+                                type_to_mutate=collections.OrderedDict,
+                                **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         s = self.get_attr_to_mutate(namespace)
 
         if hasattr(self.const, "__iter__"):
             for x in self.const:
-                s.add(x)
+                s[x] = ""
         else:
-            s.add(self.const)
+            s[self.const] = ""
 
 
 class SetAddValues(MutatingAction):
     "Action that adds values to a set."
     def __init__(self, *args, **kwargs):
-        MutatingAction.__init__(self, *args, type_to_mutate=set, **kwargs)
+        MutatingAction.__init__(self, *args,
+                                type_to_mutate=collections.OrderedDict,
+                                **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         s = self.get_attr_to_mutate(namespace)
 
         for x in values:
-            s.add(x)
+            s[x] = ""
 
 
 class DictAdd(MutatingAction):
