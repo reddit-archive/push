@@ -7,7 +7,7 @@ setup(
     version="",
     packages=["push"],
     install_requires=[
-        "wessex>=1.3.1",
+        "wessex>=1.5",
         "paramiko",
     ],
     extras_require={

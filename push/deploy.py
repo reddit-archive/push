@@ -60,6 +60,7 @@ class Deployer(object):
         self.log = log
         self.host_source = host_source
         self.deployer = push.ssh.SshDeployer(config, args, log)
+        self.host_error_prompt = None
 
         for event_name in auto_events:
             setattr(self, event_name, Event(self))
@@ -121,6 +122,10 @@ class Deployer(object):
         finally:
             self.deployer.shutdown()
 
+    @event_wrapped
+    def prompt_error(self, host, error):
+        return self.host_error_prompt(host, error)
+
     def _push(self):
         if self.args.fetches:
             self.synchronize()
@@ -155,8 +160,10 @@ class Deployer(object):
 
             try:
                 self.process_host(host)
-            except push.ssh.SshError:
+            except push.ssh.SshError as e:
                 if self.host_source.should_host_be_alive(host):
+                    if self.host_error_prompt and self.prompt_error(host, e):
+                        continue
                     raise
                 else:
                     self.log.warning("Host %r appears to have been terminated."

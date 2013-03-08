@@ -115,3 +115,15 @@ def register(config, args, deployer, log):
     def on_push_aborted(deployer, exception):
         if isinstance(exception, push.deploy.PushAborted):
             log.critical("\n*** Push cancelled (%s) ***", exception)
+
+    def host_error_prompt(host, exception):
+        log.critical("Encountered error on %s: %s", host, exception)
+        print >> log, 'Press "x" to abort, "c" to skip to the next host'
+
+        while True:
+            c = read_character()
+            if c == "x":
+                return False
+            elif c == "c":
+                return True
+    deployer.host_error_prompt = host_error_prompt

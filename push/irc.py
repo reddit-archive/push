@@ -38,3 +38,8 @@ def register(config, args, deployer, log):
     @log_exception_and_continue
     def on_push_aborted(deployer, e):
         monitor.abort(str(e))
+
+    @deployer.prompt_error_began
+    @log_exception_and_continue
+    def on_prompt_error_began(deployer, host, error):
+        monitor.error(str(error))
