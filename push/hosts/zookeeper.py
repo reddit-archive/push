@@ -1,5 +1,5 @@
 from kazoo.client import KazooClient
-from kazoo.exceptions import KazooException
+from kazoo.exceptions import KazooException, NoNodeException
 from kazoo.retry import KazooRetry
 
 from push.hosts import HostSource, HostLookupError
@@ -23,10 +23,15 @@ class ZookeeperHostSource(HostSource):
     def should_host_be_alive(self, host_name):
         try:
             host_root = "/server/" + host_name
-            if not self.retry(self.zk.exists, host_root):
+
+            state = self.retry(self.zk.get, host_root + "/state")[0]
+            if state == "unhealthy":
                 return False
+
             is_autoscaled = self.retry(self.zk.exists, host_root + "/asg")
             is_running = self.retry(self.zk.exists, host_root + "/running")
             return not is_autoscaled or is_running
+        except NoNodeException:
+            return False
         except KazooException as e:
             raise HostLookupError("zk host aliveness check failed: %r", e)
