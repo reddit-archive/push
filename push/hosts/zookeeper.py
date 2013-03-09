@@ -25,7 +25,7 @@ class ZookeeperHostSource(HostSource):
             host_root = "/server/" + host_name
 
             state = self.retry(self.zk.get, host_root + "/state")[0]
-            if state == "unhealthy":
+            if state in ("kicking", "unhealthy"):
                 return False
 
             is_autoscaled = self.retry(self.zk.exists, host_root + "/asg")
