@@ -160,7 +160,7 @@ class Deployer(object):
 
             try:
                 self.process_host(host)
-            except push.ssh.SshError as e:
+            except (push.ssh.SshError, IOError) as e:
                 if self.host_source.should_host_be_alive(host):
                     if self.host_error_prompt and self.prompt_error(host, e):
                         continue
