@@ -167,6 +167,14 @@ def alias_parser(parser):
 SECTIONS["aliases"] = alias_parser
 
 
+def default_ref_parser(parser):
+    default_refs = {}
+    if parser.has_section("default_refs"):
+        default_refs.update(parser.items("default_refs"))
+    return default_refs
+SECTIONS["default_refs"] = default_ref_parser
+
+
 def parse_config():
     """Loads the configuration files and parses them according to the
     section parsers in SECTIONS."""

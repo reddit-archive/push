@@ -84,7 +84,8 @@ class Deployer(object):
     @event_wrapped
     def resolve_refs(self):
         for repo in self.args.deploys:
-            ref_to_deploy = self.args.revisions.get(repo, "origin/master")
+            default_ref = self.config.default_refs.get(repo, "origin/master")
+            ref_to_deploy = self.args.revisions.get(repo, default_ref)
             revision = self.deployer.run_build_command("get-revision", repo,
                                                        ref_to_deploy,
                                                        display_output=False)
