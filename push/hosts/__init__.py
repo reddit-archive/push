@@ -48,6 +48,9 @@ class HostSource(object):
     def should_host_be_alive(self, host):
         return True
 
+    def shut_down(self):
+        pass
+
 
 def make_host_source(config):
     source_name = config.hosts.source

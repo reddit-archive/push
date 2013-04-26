@@ -35,3 +35,6 @@ class ZookeeperHostSource(HostSource):
             return False
         except KazooException as e:
             raise HostLookupError("zk host aliveness check failed: %r", e)
+
+    def shut_down(self):
+        self.zk.stop()
