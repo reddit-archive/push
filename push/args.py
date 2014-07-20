@@ -120,7 +120,7 @@ class ArgumentParser(argparse.ArgumentParser):
 def _parse_args(config):
     parser = ArgumentParser(description="Deploy stuff to servers.",
                             epilog="To deploy all code: push -h apps "
-                                   "-pc -dc -r all --shuffle",
+                                   "-pc -dc -r all",
                             add_help=False)
 
     parser.add_argument("-h", dest="host_refs", metavar="HOST", required=True,
