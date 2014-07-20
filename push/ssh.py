@@ -123,7 +123,8 @@ class SshDeployer(object):
         if self.current_connection and self.current_connection.host != host:
             self.current_connection.close()
             self.current_connection = None
-        self.current_connection = SshConnection(self.config, self.log, host)
+        if not self.current_connection:
+            self.current_connection = SshConnection(self.config, self.log, host)
         return self.current_connection
 
     def _run_command(self, host, binary, *args, **kwargs):
