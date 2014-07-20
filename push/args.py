@@ -133,6 +133,9 @@ def _parse_args(config):
     parser.add_argument("--startat", dest="start_at",
                         action="store", nargs='?', metavar="HOST",
                         help="skip to this position in the host list")
+    parser.add_argument("--stopbefore", dest="stop_before",
+                        action="store", nargs="?", metavar="HOST",
+                        help="end the push on the host before this one")
     parser.add_argument("--seed", dest="seed", action="store",
                         nargs="?", metavar="WORD", default=None,
                         help="name of push to copy the shuffle-order of")
@@ -220,6 +223,9 @@ def build_command_line(config, args):
 
     if args.start_at:
         components.append("--startat=%s" % args.start_at)
+
+    if args.stop_before:
+        components.append("--stopbefore=%s" % args.stop_before)
 
     if args.fetches:
         components.append("-p")
@@ -316,6 +322,16 @@ def parse_args(config, host_source):
     # it really doesn't make sense to start-at while shufflin' w/o a seed
     if args.start_at and args.shuffle and not args.seed:
         raise ArgumentError("--startat: doesn't make sense "
+                            "while shuffling without a seed")
+
+    # make sure the stopbefore is in the dereferenced host list
+    if args.stop_before and args.stop_before not in args.hosts:
+        raise ArgumentError('--stopbefore: host "%s" not in host list.' %
+                            args.stop_before)
+
+    # it really doesn't make sense to start-at while shufflin' w/o a seed
+    if args.stop_before and args.shuffle and not args.seed:
+        raise ArgumentError("--stopbefore: doesn't make sense "
                             "while shuffling without a seed")
 
     # do the shuffle!
