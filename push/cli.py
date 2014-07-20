@@ -118,12 +118,15 @@ def register(config, args, deployer, log):
 
     def host_error_prompt(host, exception):
         log.critical("Encountered error on %s: %s", host, exception)
-        print >> log, 'Press "x" to abort, "c" to skip to the next host'
+        print >> log, ('Press "x" to abort, "r" to retry this host, '
+            'or "c" to skip to the next host')
 
         while True:
             c = read_character()
             if c == "x":
-                return False
+                return push.deploy.Deployer.ABORT
             elif c == "c":
-                return True
+                return push.deploy.Deployer.CONTINUE
+            elif c == "r":
+                return push.deploy.Deployer.RETRY
     deployer.host_error_prompt = host_error_prompt

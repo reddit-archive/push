@@ -60,7 +60,6 @@ class Deployer(object):
         self.log = log
         self.host_source = host_source
         self.deployer = push.ssh.SshDeployer(config, args, log)
-        self.host_error_prompt = None
 
         for event_name in auto_events:
             setattr(self, event_name, Event(self))
@@ -123,6 +122,14 @@ class Deployer(object):
         finally:
             self.deployer.shutdown()
 
+
+    ABORT = "abort"
+    RETRY = "retry"
+    CONTINUE = "continue"
+
+    def host_error_prompt(self, host, error):
+        return self.ABORT
+
     @event_wrapped
     def prompt_error(self, host, error):
         return self.host_error_prompt(host, error)
@@ -146,7 +153,11 @@ class Deployer(object):
                 self.build_static()
                 self.args.deploy_commands.append(["fetch-names"])
 
-        for host in self.args.hosts:
+        i = 0
+        while i < len(self.args.hosts):
+            host = self.args.hosts[i]
+            i += 1
+
             # skip hosts until we get the one to start at
             if self.args.start_at:
                 if host == self.args.start_at:
@@ -163,13 +174,18 @@ class Deployer(object):
                 self.process_host(host)
             except (push.ssh.SshError, IOError) as e:
                 if self.host_source.should_host_be_alive(host):
-                    if self.host_error_prompt and self.prompt_error(host, e):
+                    response = self.prompt_error(host, e)
+                    if response == self.ABORT:
+                        raise
+                    elif response == self.CONTINUE:
                         continue
-                    raise
+                    elif response == self.RETRY:
+                        # rewind one host and try again
+                        i -= 1
+                        continue
                 else:
                     self.log.warning("Host %r appears to have been terminated."
                                      " ignoring errors and continuing." % host)
-
 
     def cancel_push(self, reason):
         raise PushAborted(reason)
