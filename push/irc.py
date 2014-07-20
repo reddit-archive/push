@@ -42,4 +42,4 @@ def register(config, args, deployer, log):
     @deployer.prompt_error_began
     @log_exception_and_continue
     def on_prompt_error_began(deployer, host, error):
-        monitor.error(str(error))
+        monitor.error("%s: %s" % (host, error))
