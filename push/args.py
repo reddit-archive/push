@@ -145,9 +145,6 @@ def _parse_args(config):
     parser.add_argument("--no-shuffle", dest="shuffle",
                         action="store_false",
                         help="don't shuffle host list")
-    parser.add_argument("--skip", dest="skip_one",
-                        action="store_true", default=False,
-                        help="skip the first host in the list (obeying startat first)")
     parser.add_argument("--list", dest="list_hosts",
                         action="store_true", default=False,
                         help="print the host list to stdout and exit")
@@ -271,9 +268,6 @@ def build_command_line(config, args):
     if args.seed:
         components.append("--seed=%s" % args.seed)
 
-    if args.skip_one:
-        components.append("--skip")
-
     components.append("--sleeptime=%d" % args.sleeptime)
 
     return " ".join(components)
@@ -333,6 +327,16 @@ def parse_args(config, host_source):
     if args.stop_before and args.shuffle and not args.seed:
         raise ArgumentError("--stopbefore: doesn't make sense "
                             "while shuffling without a seed")
+
+    # restrict the host list if start_at or stop_before were defined
+    if args.start_at or args.stop_before:
+        if args.stop_before:
+            args.hosts = itertools.takewhile(
+                lambda host: host != args.stop_before, args.hosts)
+        if args.start_at:
+            args.hosts = itertools.dropwhile(
+                lambda host: host != args.start_at, args.hosts)
+        args.hosts = list(args.hosts)
 
     # do the shuffle!
     if args.shuffle:

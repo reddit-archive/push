@@ -158,23 +158,6 @@ class Deployer(object):
             host = self.args.hosts[i]
             i += 1
 
-            # bail out if we're at the end of our journey
-            if self.args.stop_before:
-                if host == self.args.stop_before:
-                    break
-
-            # skip hosts until we get the one to start at
-            if self.args.start_at:
-                if host == self.args.start_at:
-                    self.args.start_at = None
-                else:
-                    continue
-
-            # skip one host
-            if self.args.skip_one:
-                self.args.skip_one = False
-                continue
-
             try:
                 self.process_host(host)
             except (push.ssh.SshError, IOError) as e:
