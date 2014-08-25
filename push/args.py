@@ -136,6 +136,9 @@ def _parse_args(config):
     parser.add_argument("--stopbefore", dest="stop_before",
                         action="store", nargs="?", metavar="HOST",
                         help="end the push on the host before this one")
+    parser.add_argument("--pauseafter", dest="hosts_before_pause", nargs="?",
+                        type=int, metavar="NUMBER", default=1,
+                        help="push to NUMBER hosts before pausing")
     parser.add_argument("--seed", dest="seed", action="store",
                         nargs="?", metavar="WORD", default=None,
                         help="name of push to copy the shuffle-order of")
@@ -224,6 +227,9 @@ def build_command_line(config, args):
     if args.stop_before:
         components.append("--stopbefore=%s" % args.stop_before)
 
+    if args.hosts_before_pause > 1:
+        components.append("--pauseafter=%s" % args.hosts_before_pause)
+
     if args.fetches:
         components.append("-p")
         components.extend(args.fetches)
@@ -280,8 +286,8 @@ def parse_args(config, host_source):
     args.push_id = push.utils.get_random_word(config)
 
     # quiet implies autocontinue
-    if args.quiet:
-        args.auto_continue = True
+    if args.quiet or args.auto_continue:
+        args.hosts_before_pause = 0
 
     # dereference the host lists
     all_hosts, aliases = push.hosts.get_hosts_and_aliases(config, host_source)

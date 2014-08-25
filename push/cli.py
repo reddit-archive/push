@@ -25,20 +25,29 @@ def read_character():
 
 def wait_for_input(log, deployer):
     """Wait for the user's choice of whether or not to continue the push.
-    Return whether or not to auto-continue after further hosts."""
+    Return how many hosts to push to before asking again (0 for all)."""
 
-    print >> log, ('Press "x" to abort, "c" to go to the next host, or '
-                   '"a" to continue automatically.')
+    print >> log, ('Press "x" to abort, "c" to go to the next host, a '
+                   'number from 1-9 to push to that many hosts before '
+                   'pausing again, or "a" to continue automatically.')
 
     while True:
         c = read_character()
         if c == "a":
             print >> log, "Continuing automatically. Press ^C to abort."
-            return True
+            return 0
         elif c == "x":
             deployer.cancel_push('"x" pressed')
         elif c == "c":
-            return False
+            return 1
+        else:
+            # see if they entered a 1-9 number
+            try:
+                num_hosts = int(c)
+            except ValueError:
+                continue
+            if num_hosts > 0:
+                return num_hosts
 
 
 def sleep_with_countdown(log, sleeptime):
@@ -102,10 +111,11 @@ def register(config, args, deployer, log):
 
         if args.hosts[-1] == host:
             pass
-        elif args.auto_continue:
-            sleep_with_countdown(log, args.sleeptime)
+        elif args.hosts_before_pause == 1:
+            args.hosts_before_pause = wait_for_input(log, deployer)
         else:
-            args.auto_continue = wait_for_input(log, deployer)
+            args.hosts_before_pause -= 1
+            sleep_with_countdown(log, args.sleeptime)
 
     @deployer.push_ended
     def on_push_ended(deployer):
