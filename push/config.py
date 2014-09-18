@@ -154,7 +154,7 @@ class ZooKeeperConfig(object):
 
 @config_section
 class DefaultsConfig(object):
-    sleeptime = Option(int, default=5)
+    sleeptime = Option(int, default=0)
     shuffle = Option(boolean, default=False)
 
 
